@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TIMTAMTITUS Scoring System</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400&family=DM+Sans:wght@300;400;500&display=swap');
+
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --surface2: #181818;
+    --border: #2a2a2a;
+    --gold: #c9a84c;
+    --gold-dim: #7a6230;
+    --text: #e8e0d0;
+    --text-dim: #6b6457;
+    --text-mid: #a09080;
+    --plot: #4a7c6f;
+    --craft: #5a6fa8;
+    --enjoy: #8f5a6e;
+    --comments: #7a6a9a;
+    --neutral: #7a8a6a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    padding: 0 0 100px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  header {
+    padding: 56px 0 40px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+  }
+
+  .title-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .main-title {
+    font-family: 'DM Mono', monospace;
+    font-size: clamp(14px, 3vw, 20px);
+    font-weight: 400;
+    letter-spacing: 0.15em;
+    color: var(--text);
+    text-transform: uppercase;
+    line-height: 1.3;
+  }
+
+  .film-input-wrap { margin-top: 24px; }
+
+  .film-input {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-style: italic;
+    padding: 10px 16px;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .film-input::placeholder { color: var(--text-dim); }
+  .film-input:focus { border-color: var(--gold-dim); }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .section-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-weight: 400;
+  }
+
+  .section-title.plot { color: var(--plot); }
+  .section-title.craft { color: var(--craft); }
+  .section-title.enjoy { color: var(--enjoy); }
+  .section-title.comments-col { color: var(--comments); }
+
+  .section-total {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-left: auto;
+  }
+
+  .criterion-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    margin-bottom: 2px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .criterion-card:hover { border-color: #3a3a3a; }
+
+  .criterion-header {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px;
+    cursor: pointer;
+    user-select: none;
+    gap: 16px;
+  }
+
+  .criterion-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .criterion-max {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+
+  .criterion-score-display {
+    font-family: 'DM Mono', monospace;
+    font-size: 16px;
+    font-weight: 400;
+    min-width: 28px;
+    text-align: right;
+  }
+
+  .score-unset { color: var(--text-dim); }
+  .score-set { color: var(--gold); }
+
+  .criterion-body {
+    display: none;
+    padding: 0 20px 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  .criterion-body.open { display: block; }
+
+  .question {
+    font-size: 13px;
+    color: var(--text-mid);
+    padding: 14px 0 16px;
+    font-style: italic;
+    line-height: 1.6;
+  }
+
+  .benchmarks {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .benchmark {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 14px;
+    background: var(--surface2);
+    cursor: pointer;
+    transition: background 0.15s;
+    border: 1px solid transparent;
+  }
+
+  .benchmark:hover { background: #202020; }
+
+  .benchmark.selected {
+    background: #1a1600;
+    border-color: var(--gold-dim);
+  }
+
+  .benchmark-score {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--gold);
+    min-width: 28px;
+    font-weight: 400;
+  }
+
+  .benchmark-desc {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .benchmark-film {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-style: italic;
+    white-space: nowrap;
+  }
+
+  .section-block { margin-bottom: 40px; }
+
+  /* Comments */
+  .comments-section { margin-bottom: 40px; }
+  .comment-group { margin-bottom: 20px; }
+
+  .comment-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .comment-textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 300;
+    padding: 12px 16px;
+    outline: none;
+    resize: vertical;
+    min-height: 64px;
+    line-height: 1.6;
+    transition: border-color 0.2s;
+  }
+
+  .comment-textarea::placeholder { color: var(--text-dim); }
+  .comment-textarea:focus { border-color: var(--gold-dim); }
+
+  .signed-comment-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin-bottom: 8px;
+  }
+
+  .comment-sign {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    padding: 12px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    user-select: none;
+    line-height: 1.6;
+    white-space: nowrap;
+  }
+
+  .comment-sign.positive { color: var(--plot); }
+  .comment-sign.negative { color: var(--enjoy); }
+  .comment-sign.neutral  { color: var(--neutral); }
+
+  .comment-textarea.inline {
+    flex: 1;
+    min-height: 64px;
+  }
+
+  .add-comment-btn {
+    background: none;
+    border: 1px dashed var(--border);
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+    text-align: left;
+    margin-top: 2px;
+  }
+
+  .add-comment-btn:hover { border-color: var(--gold-dim); color: var(--gold); }
+
+  .remove-btn {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 18px;
+    padding: 10px 4px;
+    line-height: 1;
+    transition: color 0.2s;
+    align-self: flex-start;
+  }
+
+  .remove-btn:hover { color: var(--enjoy); }
+
+  /* Total bar */
+  .total-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: #0d0d0d;
+    border-top: 1px solid var(--border);
+    z-index: 100;
+    padding: 12px 24px;
+  }
+
+  .total-inner {
+    max-width: 720px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .total-film-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    font-style: italic;
+    color: var(--text-mid);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .total-breakdown {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .total-segment {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .total-segment-label { color: var(--text-dim); font-size: 9px; letter-spacing: 0.1em; }
+  .total-segment-val { font-size: 14px; }
+  .total-segment-val.plot  { color: var(--plot); }
+  .total-segment-val.craft { color: var(--craft); }
+  .total-segment-val.enjoy { color: var(--enjoy); }
+
+  .total-divider { width: 1px; height: 28px; background: var(--border); }
+
+  .total-score {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    color: var(--gold);
+    white-space: nowrap;
+  }
+
+  .total-score span {
+    font-size: 14px;
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* Toggle + Copy row */
+  .action-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .mode-toggle {
+    display: flex;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .mode-btn {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 8px 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .mode-btn.active {
+    background: var(--surface2);
+    color: var(--gold);
+  }
+
+  .mode-btn:not(.active):hover { color: var(--text-mid); }
+
+  .copy-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-mid);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .copy-btn:hover { border-color: var(--gold-dim); color: var(--gold); }
+  .copy-btn.copied { border-color: var(--plot); color: var(--plot); }
+
+  .chevron {
+    font-size: 10px;
+    color: var(--text-dim);
+    transition: transform 0.2s;
+    margin-left: 4px;
+  }
+
+  .criterion-card.open .chevron { transform: rotate(180deg); }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="title-label">Letterboxd · Film Scoring</div>
+    <div class="main-title">Timtamtitus Scoring System</div>
+    <div class="film-input-wrap">
+      <input class="film-input" id="filmName" type="text" placeholder="Film title…" oninput="updateFilmName()">
+    </div>
+  </header>
+
+  <!-- PLOT -->
+  <div class="section-block">
+    <div class="section-header">
+      <div class="section-title plot">Plot</div>
+      <div class="section-total" id="plot-total">—/5</div>
+    </div>
+
+    <div class="criterion-card" id="card-concept">
+      <div class="criterion-header" onclick="toggleCard('concept')">
+        <div class="criterion-name">Concept & Originality</div>
+        <div class="criterion-max">/ 2</div>
+        <div class="criterion-score-display score-unset" id="display-concept">—</div>
+        <div class="chevron">▼</div>
+      </div>
+      <div class="criterion-body" id="body-concept">
+        <div class="question">Does the premise bring something genuinely fresh? Is there a reason this film needed to exist?</div>
+        <div class="benchmarks">
+          <div class="benchmark" onclick="setScore('concept', 0, this)"><div class="benchmark-score">0</div><div class="benchmark-desc">nothing new</div><div class="benchmark-film">The Bee Movie</div></div>
+          <div class="benchmark" onclick="setScore('concept', 0.5, this)"><div class="benchmark-score">0.5</div><div class="benchmark-desc">familiar</div><div class="benchmark-film">John Wick</div></div>
+          <div class="benchmark" onclick="setScore('concept', 1, this)"><div class="benchmark-score">1</div><div class="benchmark-desc">conventional but solid</div><div class="benchmark-film">The Housemaid</div></div>
+          <div class="benchmark" onclick="setScore('concept', 1.5, this)"><div class="benchmark-score">1.5</div><div class="benchmark-desc">fresh</div><div class="benchmark-film">Top Gun: Maverick</div></div>
+          <div class="benchmark" onclick="setScore('concept', 2, this)"><div class="benchmark-score">2</div><div class="benchmark-desc">genuinely inventive</div><div class="benchmark-film">The Truman Show</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="criterion-card" id="card-structure">
+      <div class="criterion-header" onclick="toggleCard('structure')">
+        <div class="criterion-name">Structure & Pacing</div>
+        <div class="criterion-max">/ 1</div>
+        <div class="criterion-score-display score-unset" id="display-structure">—</div>
+        <div class="chevron">▼</div>
+      </div>
+      <div class="criterion-body" id="body-structure">
+        <div class="question">Does the story move with intention? Does every scene feel necessary?</div>
+        <div class="benchmarks">
+          <div class="benchmark" onclick="setScore('structure', 0, this)"><div class="benchmark-score">0</div><div class="benchmark-desc">incoherent</div><div class="benchmark-film">Fallen Angels</div></div>
+          <div class="benchmark" onclick="setScore('structure', 0.5, this)"><div class="benchmark-score">0.5</div><div class="benchmark-desc">uneven</div><div class="benchmark-film">Eat Drink Man Woman</div></div>
+          <div class="benchmark" onclick="setScore('structure', 1, this)"><div class="benchmark-score">1</div><div class="benchmark-desc">purposeful</div><div class="benchmark-film">Django Unchained</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="criterion-card" id="card-themes">
+      <div class="criterion-header" onclick="toggleCard('themes')">
+        <div class="criterion-name">Themes & Messages</div>
+        <div class="criterion-max">/ 1</div>
+        <div class="criterion-score-display score-unset" id="display-themes">—</div>
+        <div class="chevron">▼</div>
+      </div>
+      <div class="criterion-body" id="body-themes">
+        <div class="question">Is there something meaningful operating underneath the surface? Does it have something to say?</div>
+        <div class="benchmarks">
+          <div class="benchmark" onclick="setScore('themes', 0, this)"><div class="benchmark-score">0</div><div class="benchmark-desc">no ideas underneath</div><div class="benchmark-film">Transformers</div></div>
+          <div class="benchmark" onclick="setScore('themes', 0.5, this)"><div class="benchmark-score">0.5</div><div class="benchmark-desc">surface level</div><div class="benchmark-film">Avatar</div></div>
+          <div class="benchmark" onclick="setScore('themes', 1, this)"><div class="benchmark-score">1</div><div class="benchmark-desc">rich and layered</div><div class="benchmark-film">Parasite</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="criterion-card" id="card-ending">
+      <div class="criterion-header" onclick="toggleCard('ending')">
+        <div class="criterion-name">Climax & Ending</div>
+        <div class="criterion-max">/ 1</div>
+        <div class="criterion-score-display score-unset" id="display-ending">—</div>
+        <div class="chevron">▼</div>
+      </div>
+      <div class="criterion-body" id="body-ending">
+        <div class="question">Does the climax pay off what the film built? Does the ending feel earned?</div>
+        <div class="benchmarks">
+          <div class="benchmark" onclick="setScore('ending', 0, this)"><div class="benchmark-score">0</div><div class="benchmark-desc">unearned</div><div class="benchmark-film">The Balconettes</div></div>
+          <div class="benchmark" onclick="setScore('ending', 0.5, this)"><div class="benchmark-score">0.5</div><div class="benchmark-desc">closes but doesn't land</div><div class="benchmark-film">The Long Walk</div></div>
+          <div class="benchmark" onclick="setScore('ending', 1, this)"><div class="benchmark-score">1</div><div class="benchmark-desc">earned</div><div class="benchmark-film">Pulp Fiction</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CRAFT -->
+  <div class="section-block">
+    <div class="section-header">
+      <div class="section-title craft">Craft</div>
+      <div class="section-total" id="craft-total">—/5</div>
+    </div>
+
+    <div class="criterion-card" id="card-visual">
+      <div class="criterion-header" onclick="toggleCard('visual')">
+        <div class="criterion-name">Visual Storytelling</div>
+        <div class="criterion-max">/ 2</div>
+        <div class="criterion-score-display score-unset" id="display-visual">—</div>
+        <div class="chevron">▼</div>
+      </div>
+      <div class="criterion-body" id="body-visual">
+        <div class="question">Does the filmmaking serve the story? Are cinematography, editing, and production design working together intentionally?</div>
+        <div class="benchmarks">
+          <div class="benchmark" onclick="setScore('visual', 0, this)"><div class="benchmark-score">0</div><div class="benchmark-desc">generic, any film</div><div class="benchmark-film">Catwoman</div></div>
+          <div class="benchmark" onclick="setScore('visual', 0.5, this)"><div class="benchmark-score">0.5</div><div class="benchmark-desc">inconsistent</div><div class="benchmark-film">The Polar Express</div></div>
+          <div class="benchmark" onclick="setScore('visual', 1, this)"><div class="benchmark-score">1</div><div class="benchmark-desc">visuals serve the story</div><div class="benchmark-film">Me and Earl and the Dying Girl</div></div>
+          <div class="benchmark" onclick="setScore('visual', 1.5, this)"><div class="benchmark-score">1.5</div><div class="benchmark-desc">every frame considered</div><div class="benchmark-film">The Princess Bride</div></div>
+          <div class="benchmark" onclick="setScore('visual', 2, this)"><div class="benchmark-score">2</div><div class="benchmark-desc">story told through image</div><div class="benchmark-film">Kill Bill</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="criterion-card" id="card-character">
+      <div class="criterion-header" onclick="toggleCard('character')">
+        <div class="criterion-name">Character & Writing</div>
+        <div class="criterion-max">/ 2</div>
+        <div class="criterion-score-display score-unset" id="display-character">—</div>
+        <div class="chevron">▼</div>
+      </div>
+      <div class="criterion-body" id="body-character">
+        <div class="question">Do you care about these people? Do they feel real, or do they exist just to serve the plot?</div>
+        <div class="benchmarks">
+          <div class="benchmark" onclick="setScore('character', 0, this)"><div class="benchmark-score">0</div><div class="benchmark-desc">no one to care about</div><div class="benchmark-film">The Long Goodbye</div></div>
+          <div class="benchmark" onclick="setScore('character', 0.5, this)"><div class="benchmark-score">0.5</div><div class="benchmark-desc">exist to serve the plot</div><div class="benchmark-film">Grown Ups</div></div>
+          <div class="benchmark" onclick="setScore('character', 1, this)"><div class="benchmark-score">1</div><div class="benchmark-desc">likeable but one-dimensional</div><div class="benchmark-film">Dune</div></div>
+          <div class="benchmark" onclick="setScore('character', 1.5, this)"><div class="benchmark-score">1.5</div><div class="benchmark-desc">feel like real people</div><div class="benchmark-film">Wicked</div></div>
+          <div class="benchmark" onclick="setScore('character', 2, this)"><div class="benchmark-score">2</div><div class="benchmark-desc">nuanced, stay with you</div><div class="benchmark-film">12 Angry Men</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="criterion-card" id="card-clarity">
+      <div class="criterion-header" onclick="toggleCard('clarity')">
+        <div class="criterion-name">Clarity</div>
+        <div class="criterion-max">/ 1</div>
+        <div class="criterion-score-display score-unset" id="display-clarity">—</div>
+        <div class="chevron">▼</div>
+      </div>
+      <div class="criterion-body" id="body-clarity">
+        <div class="question">Can you follow what's happening and why? Does the film's logic hold together?</div>
+        <div class="benchmarks">
+          <div class="benchmark" onclick="setScore('clarity', 0, this)"><div class="benchmark-score">0</div><div class="benchmark-desc">incoherent</div><div class="benchmark-film">Tenet</div></div>
+          <div class="benchmark" onclick="setScore('clarity', 0.5, this)"><div class="benchmark-score">0.5</div><div class="benchmark-desc">followable with leaps</div><div class="benchmark-film">The Man Who Knew Too Much</div></div>
+          <div class="benchmark" onclick="setScore('clarity', 1, this)"><div class="benchmark-score">1</div><div class="benchmark-desc">always clear</div><div class="benchmark-film">Mary and Max</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PERSONAL ENJOYMENT -->
+  <div class="section-block">
+    <div class="section-header">
+      <div class="section-title enjoy">Personal Enjoyment</div>
+      <div class="section-total" id="enjoy-total">—/5</div>
+    </div>
+
+    <div class="criterion-card" id="card-engagement">
+      <div class="criterion-header" onclick="toggleCard('engagement')">
+        <div class="criterion-name">Engagement</div>
+        <div class="criterion-max">/ 3</div>
+        <div class="criterion-score-display score-unset" id="display-engagement">—</div>
+        <div class="chevron">▼</div>
+      </div>
+      <div class="criterion-body" id="body-engagement">
+        <div class="question">In the moment — were you gripped? Did you check your phone? Did time move?</div>
+        <div class="benchmarks">
+          <div class="benchmark" onclick="setScore('engagement', 0, this)"><div class="benchmark-score">0</div><div class="benchmark-desc">checked out</div><div class="benchmark-film">The Secret Agent</div></div>
+          <div class="benchmark" onclick="setScore('engagement', 0.5, this)"><div class="benchmark-score">0.5</div><div class="benchmark-desc">frequently drifts</div><div class="benchmark-film">Madame Web</div></div>
+          <div class="benchmark" onclick="setScore('engagement', 1, this)"><div class="benchmark-score">1</div><div class="benchmark-desc">spectacle sustains it</div><div class="benchmark-film">The Smurfs</div></div>
+          <div class="benchmark" onclick="setScore('engagement', 1.5, this)"><div class="benchmark-score">1.5</div><div class="benchmark-desc">mostly there</div><div class="benchmark-film">Train Dreams</div></div>
+          <div class="benchmark" onclick="setScore('engagement', 2, this)"><div class="benchmark-score">2</div><div class="benchmark-desc">consistently gripping</div><div class="benchmark-film">The Bad Guys</div></div>
+          <div class="benchmark" onclick="setScore('engagement', 2.5, this)"><div class="benchmark-score">2.5</div><div class="benchmark-desc">hard to look away</div><div class="benchmark-film">The Batman</div></div>
+          <div class="benchmark" onclick="setScore('engagement', 3, this)"><div class="benchmark-score">3</div><div class="benchmark-desc">completely riveted</div><div class="benchmark-film">Prisoners</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="criterion-card" id="card-delivery">
+      <div class="criterion-header" onclick="toggleCard('delivery')">
+        <div class="criterion-name">Delivery</div>
+        <div class="criterion-max">/ 2</div>
+        <div class="criterion-score-display score-unset" id="display-delivery">—</div>
+        <div class="chevron">▼</div>
+      </div>
+      <div class="criterion-body" id="body-delivery">
+        <div class="question">How much emotion did it squeeze out of you? If it's sad, did you cry? If it's a thriller, was your heart racing?</div>
+        <div class="benchmarks">
+          <div class="benchmark" onclick="setScore('delivery', 0, this)"><div class="benchmark-score">0</div><div class="benchmark-desc">nothing squeezed out</div><div class="benchmark-film">Cats</div></div>
+          <div class="benchmark" onclick="setScore('delivery', 0.5, this)"><div class="benchmark-score">0.5</div><div class="benchmark-desc">fleeting moments</div><div class="benchmark-film">Spies in Disguise</div></div>
+          <div class="benchmark" onclick="setScore('delivery', 1, this)"><div class="benchmark-score">1</div><div class="benchmark-desc">felt something</div><div class="benchmark-film">[REC]</div></div>
+          <div class="benchmark" onclick="setScore('delivery', 1.5, this)"><div class="benchmark-score">1.5</div><div class="benchmark-desc">genuinely moved</div><div class="benchmark-film">Challengers</div></div>
+          <div class="benchmark" onclick="setScore('delivery', 2, this)"><div class="benchmark-score">2</div><div class="benchmark-desc">wrecked</div><div class="benchmark-film">How to Make Millions Before Grandma Dies</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMMENTS -->
+  <div class="comments-section">
+    <div class="section-header">
+      <div class="section-title comments-col">Comments</div>
+    </div>
+
+    <div class="comment-group">
+      <div class="comment-label">Standout Scene</div>
+      <textarea class="comment-textarea" id="scene-input" placeholder="Describe a scene that stood out…" rows="2"></textarea>
+    </div>
+
+    <div class="comment-group">
+      <div class="comment-label">Positives</div>
+      <div id="positives-list">
+        <div class="signed-comment-row">
+          <div class="comment-sign positive">(+)</div>
+          <textarea class="comment-textarea inline" placeholder="What worked…" rows="2"></textarea>
+          <button class="remove-btn" onclick="this.parentElement.remove()">×</button>
+        </div>
+      </div>
+      <button class="add-comment-btn" onclick="addComment('positives-list', 'positive', '(+)', 'What worked…')">+ add positive</button>
+    </div>
+
+    <div class="comment-group">
+      <div class="comment-label">Negatives</div>
+      <div id="negatives-list">
+        <div class="signed-comment-row">
+          <div class="comment-sign negative">(-)</div>
+          <textarea class="comment-textarea inline" placeholder="What didn't…" rows="2"></textarea>
+          <button class="remove-btn" onclick="this.parentElement.remove()">×</button>
+        </div>
+      </div>
+      <button class="add-comment-btn" onclick="addComment('negatives-list', 'negative', '(-)', 'What didn\'t…')">+ add negative</button>
+    </div>
+
+    <div class="comment-group">
+      <div class="comment-label">Neutral</div>
+      <div id="neutrals-list"></div>
+      <button class="add-comment-btn" onclick="addComment('neutrals-list', 'neutral', '(~)', 'Mixed feelings…')">+ add neutral</button>
+    </div>
+  </div>
+</div>
+
+<!-- Total Bar -->
+<div class="total-bar">
+  <div class="total-inner">
+    <div class="total-film-name" id="totalFilmName">—</div>
+    <div class="total-breakdown">
+      <div class="total-segment">
+        <div class="total-segment-label">PLOT</div>
+        <div class="total-segment-val plot" id="seg-plot">—</div>
+      </div>
+      <div class="total-divider"></div>
+      <div class="total-segment">
+        <div class="total-segment-label">CRAFT</div>
+        <div class="total-segment-val craft" id="seg-craft">—</div>
+      </div>
+      <div class="total-divider"></div>
+      <div class="total-segment">
+        <div class="total-segment-label">ENJOY</div>
+        <div class="total-segment-val enjoy" id="seg-enjoy">—</div>
+      </div>
+      <div class="total-divider"></div>
+      <div class="total-score"><span>TOTAL </span><span id="grandTotal">—</span><span>/15</span></div>
+    </div>
+    <div class="action-row">
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="btn-desktop" onclick="setMode('desktop')">Desktop</button>
+        <button class="mode-btn" id="btn-mobile" onclick="setMode('mobile')">Mobile</button>
+      </div>
+      <button class="copy-btn" id="copyBtn" onclick="copyResult()">Copy</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const scores = {
+    concept: null, structure: null, themes: null, ending: null,
+    visual: null, character: null, clarity: null,
+    engagement: null, delivery: null
+  };
+
+  const sections = {
+    plot: ['concept', 'structure', 'themes', 'ending'],
+    craft: ['visual', 'character', 'clarity'],
+    enjoy: ['engagement', 'delivery']
+  };
+
+  let copyMode = 'desktop';
+
+  function setMode(mode) {
+    copyMode = mode;
+    document.getElementById('btn-desktop').classList.toggle('active', mode === 'desktop');
+    document.getElementById('btn-mobile').classList.toggle('active', mode === 'mobile');
+  }
+
+  // Unicode bold + italic converters
+  const boldMap = {};
+  const italicMap = {};
+
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'.split('').forEach((c, i) => {
+    const code = c.charCodeAt(0);
+    // Bold: 𝗔-𝗭 = U+1D5D4, 𝗮-𝘇 = U+1D5EE, 𝟬-𝟵 = U+1D7EC
+    if (code >= 65 && code <= 90)       boldMap[c] = String.fromCodePoint(0x1D5D4 + code - 65);
+    else if (code >= 97 && code <= 122) boldMap[c] = String.fromCodePoint(0x1D5EE + code - 97);
+    else if (code >= 48 && code <= 57)  boldMap[c] = String.fromCodePoint(0x1D7EC + code - 48);
+    // Italic: 𝘈-𝘡 = U+1D608, 𝘢-𝘻 = U+1D622
+    if (code >= 65 && code <= 90)       italicMap[c] = String.fromCodePoint(0x1D608 + code - 65);
+    else if (code >= 97 && code <= 122) italicMap[c] = String.fromCodePoint(0x1D622 + code - 97);
+    else if (code >= 48 && code <= 57)  italicMap[c] = c; // numbers stay plain in italic
+  });
+
+  function toBold(str) {
+    return str.split('').map(c => boldMap[c] || c).join('');
+  }
+
+  function toItalic(str) {
+    return str.split('').map(c => italicMap[c] || c).join('');
+  }
+
+  function toggleCard(id) {
+    const card = document.getElementById('card-' + id);
+    const body = document.getElementById('body-' + id);
+    const isOpen = body.classList.contains('open');
+    body.classList.toggle('open', !isOpen);
+    card.classList.toggle('open', !isOpen);
+  }
+
+  function setScore(criterion, value, el) {
+    scores[criterion] = value;
+    const disp = document.getElementById('display-' + criterion);
+    disp.textContent = value;
+    disp.classList.remove('score-unset');
+    disp.classList.add('score-set');
+    el.parentElement.querySelectorAll('.benchmark').forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected');
+    recalc();
+    setTimeout(() => {
+      document.getElementById('body-' + criterion).classList.remove('open');
+      document.getElementById('card-' + criterion).classList.remove('open');
+    }, 300);
+  }
+
+  function recalc() {
+    const sum = arr => arr.reduce((a, b) => a + b, 0);
+    const fmt = (v, max) => v === null ? '—' : v + '/' + max;
+
+    const pVals = sections.plot.map(k => scores[k]);
+    const cVals = sections.craft.map(k => scores[k]);
+    const eVals = sections.enjoy.map(k => scores[k]);
+
+    const plotTotal  = pVals.every(v => v !== null) ? sum(pVals) : null;
+    const craftTotal = cVals.every(v => v !== null) ? sum(cVals) : null;
+    const enjoyTotal = eVals.every(v => v !== null) ? sum(eVals) : null;
+
+    document.getElementById('plot-total').textContent  = fmt(plotTotal, 5);
+    document.getElementById('craft-total').textContent = fmt(craftTotal, 5);
+    document.getElementById('enjoy-total').textContent = fmt(enjoyTotal, 5);
+    document.getElementById('seg-plot').textContent  = plotTotal  !== null ? plotTotal  : '—';
+    document.getElementById('seg-craft').textContent = craftTotal !== null ? craftTotal : '—';
+    document.getElementById('seg-enjoy').textContent = enjoyTotal !== null ? enjoyTotal : '—';
+
+    const all = Object.values(scores);
+    document.getElementById('grandTotal').textContent = all.every(v => v !== null) ? sum(all) : '—';
+  }
+
+  function updateFilmName() {
+    document.getElementById('totalFilmName').textContent = document.getElementById('filmName').value || '—';
+  }
+
+  function addComment(listId, signClass, signText, placeholder) {
+    const list = document.getElementById(listId);
+    const row = document.createElement('div');
+    row.className = 'signed-comment-row';
+    row.innerHTML = `
+      <div class="comment-sign ${signClass}">${signText}</div>
+      <textarea class="comment-textarea inline" placeholder="${placeholder}" rows="2"></textarea>
+      <button class="remove-btn" onclick="this.parentElement.remove()">×</button>
+    `;
+    list.appendChild(row);
+  }
+
+  function buildLines(s, grand, pTotal, cTotal, eTotal, scene, positives, negatives, neutrals, mobile) {
+    const B  = mobile ? toBold   : (t) => `<b>${t}</b>`;
+    const I  = mobile ? toItalic : (t) => `<i>${t}</i>`;
+    const BI = mobile ? (t) => toBold(toItalic(t)) : (t) => `<b><i>${t}</i></b>`;
+
+    const lines = [];
+    lines.push(BI(`OVERALL ${grand}/15`));
+    lines.push('');
+    lines.push(I('PLOT'));
+    lines.push(`${s.concept ?? '?'}/2 originality or concept`);
+    lines.push(`${s.structure ?? '?'}/1 structure or pacing`);
+    lines.push(`${s.themes ?? '?'}/1 themes or messages`);
+    lines.push(`${s.ending ?? '?'}/1 climax or ending`);
+    lines.push('');
+    lines.push(I('CRAFT'));
+    lines.push(`${s.visual ?? '?'}/2 visual storytelling`);
+    lines.push(`${s.character ?? '?'}/2 character or writing`);
+    lines.push(`${s.clarity ?? '?'}/1 clarity`);
+    lines.push('');
+    lines.push(I('PERSONAL ENJOYMENT'));
+    lines.push(`${s.engagement ?? '?'}/3 engagement`);
+    lines.push(`${s.delivery ?? '?'}/2 delivery`);
+    lines.push('');
+    lines.push('comments:');
+    if (scene) lines.push(`scene - ${scene}`);
+    positives.forEach(p => { lines.push(''); lines.push(`(+) ${p}`); });
+    negatives.forEach(n => { lines.push(''); lines.push(`(-) ${n}`); });
+    neutrals.forEach(n  => { lines.push(''); lines.push(`(~) ${n}`); });
+    return lines.join('\n');
+  }
+
+  function copyResult() {
+    const s = scores;
+    const sum = arr => arr.reduce((a, b) => a + b, 0);
+    const all = Object.values(s);
+    const grand = all.every(v => v !== null) ? sum(all) : '?';
+
+    const pVals = sections.plot.map(k => s[k]);
+    const cVals = sections.craft.map(k => s[k]);
+    const eVals = sections.enjoy.map(k => s[k]);
+    const pTotal = pVals.every(v => v !== null) ? sum(pVals) : '?';
+    const cTotal = cVals.every(v => v !== null) ? sum(cVals) : '?';
+    const eTotal = eVals.every(v => v !== null) ? sum(eVals) : '?';
+
+    const scene     = document.getElementById('scene-input').value.trim();
+    const positives = [...document.querySelectorAll('#positives-list textarea')].map(t => t.value.trim()).filter(Boolean);
+    const negatives = [...document.querySelectorAll('#negatives-list textarea')].map(t => t.value.trim()).filter(Boolean);
+    const neutrals  = [...document.querySelectorAll('#neutrals-list textarea')].map(t => t.value.trim()).filter(Boolean);
+
+    const text = buildLines(s, grand, pTotal, cTotal, eTotal, scene, positives, negatives, neutrals, copyMode === 'mobile');
+
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById('copyBtn');
+      btn.textContent = 'Copied';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+</script>
+</body>
+</html>
