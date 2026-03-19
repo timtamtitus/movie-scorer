@@ -448,6 +448,48 @@
   }
 
   .criterion-card.open .chevron { transform: rotate(180deg); }
+
+  @media (max-width: 600px) {
+    body { padding: 0 0 130px; }
+
+    .container { padding: 0 16px; }
+
+    header { padding: 32px 0 28px; }
+
+    .main-title { font-size: 13px; letter-spacing: 0.1em; }
+
+    .total-bar { padding: 10px 16px; }
+
+    .total-inner {
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .total-film-name {
+      width: 100%;
+      flex: none;
+      font-size: 13px;
+    }
+
+    .total-breakdown {
+      flex: 1;
+      gap: 10px;
+    }
+
+    .total-score { font-size: 20px; }
+
+    .action-row { margin-left: auto; }
+
+    .mode-btn { padding: 6px 8px; font-size: 9px; }
+
+    .copy-btn { padding: 6px 10px; font-size: 9px; }
+
+    .benchmark { flex-wrap: wrap; }
+
+    .benchmark-film { font-size: 10px; }
+
+    .total-segment-val { font-size: 12px; }
+  }
 </style>
 </head>
 <body>
@@ -835,7 +877,7 @@
   function buildLines(s, grand, pTotal, cTotal, eTotal, scene, positives, negatives, neutrals, mobile) {
     const B  = mobile ? toBold   : (t) => `<b>${t}</b>`;
     const I  = mobile ? toItalic : (t) => `<i>${t}</i>`;
-    const BI = mobile ? (t) => toBold(toItalic(t)) : (t) => `<b><i>${t}</i></b>`;
+    const BI = (t) => mobile ? toBold(t) : `<b><i>${t}</i></b>`;
 
     const lines = [];
     lines.push(BI(`OVERALL ${grand}/15`));
